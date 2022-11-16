@@ -34,7 +34,7 @@ public class MiServicioIntenso extends JobIntentService {
         while (true){
             mandarNotificaciones(getApplicationContext());
             try {
-                Thread.sleep(30*1000);
+                Thread.sleep(15*1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -47,7 +47,7 @@ public class MiServicioIntenso extends JobIntentService {
 
         Random random = new Random();
         random.setSeed(System.currentTimeMillis());
-        int nAleatorio = random.nextInt();
+        int nAleatorio = random.nextInt(1000);
         Intent intent = new Intent(ctx, MainActivity.class);
         intent.putExtra(MainActivity.MENSAJE, "El número es: " +nAleatorio );
 
