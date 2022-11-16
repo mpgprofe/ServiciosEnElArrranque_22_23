@@ -4,9 +4,13 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.Context;
+import android.content.IntentFilter;
+import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
@@ -19,6 +23,8 @@ public class MiServicioIntenso extends JobIntentService {
 
     private int ID=111;
     int contador=0;
+    CuandoPasanCosas cuandoPasanCosas = new CuandoPasanCosas();
+    static boolean funcionando =true;
 
     public MiServicioIntenso() {
     }
@@ -31,7 +37,11 @@ public class MiServicioIntenso extends JobIntentService {
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
 
-        while (true){
+        IntentFilter intentFilter = new IntentFilter(Intent.ACTION_POWER_CONNECTED);
+        intentFilter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+        getBaseContext().registerReceiver(cuandoPasanCosas, intentFilter);
+
+        while (funcionando){
             mandarNotificaciones(getApplicationContext());
             try {
                 Thread.sleep(15*1000);
@@ -39,6 +49,7 @@ public class MiServicioIntenso extends JobIntentService {
                 e.printStackTrace();
             }
         }
+        Log.d("SERVICIO", "Se ha terminado la tarea");
 
     }
 
@@ -51,7 +62,7 @@ public class MiServicioIntenso extends JobIntentService {
         Intent intent = new Intent(ctx, MainActivity.class);
         intent.putExtra(MainActivity.MENSAJE, "El número es: " +nAleatorio );
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(ctx, ID, intent, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(ctx, ID++, intent, 0);
 
         Notification notification = new NotificationCompat.Builder(ctx, MainActivity.ID_CANAL).
                 setContentTitle("Notificación desde el Servicio").
@@ -64,4 +75,19 @@ public class MiServicioIntenso extends JobIntentService {
 
     }
 
+    private class CuandoPasanCosas  extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)){
+                Log.d("MISERVICIO", "Se ha conectado el cable");
+                Toast.makeText(context, "Has conectado el cable", Toast.LENGTH_SHORT).show();
+            }
+            if (intent.getAction().equals(Intent.ACTION_POWER_DISCONNECTED)){
+                Log.d("MISERVICIO", "Se ha des conectado el cable");
+                Toast.makeText(context, "Has des conectado el cable", Toast.LENGTH_SHORT).show();
+                funcionando=false;
+            }
+
+        }
+    }
 }
